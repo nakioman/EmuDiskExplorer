@@ -1,35 +1,27 @@
-using EmuDiskExplorer.Models;
-using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Configuration;
-using System.Text;
 
 namespace EmuDiskExplorer.Services;
 
-public class ConfigurationService : IConfigurationService
+public class ConfigurationService(IConfiguration configuration, IFileBrowserService fileBrowserService) : IConfigurationService
 {
-    private readonly string _configPath;
-    private readonly IOptionsMonitor<AppConfiguration> _optionsMonitor;
-    private readonly IConfiguration _configuration;
+    private readonly string _configPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "config.ini");
+    private readonly IConfiguration _configuration = configuration;
+    private readonly IFileBrowserService _fileBrowserService = fileBrowserService;
 
-    public ConfigurationService(IOptionsMonitor<AppConfiguration> optionsMonitor, IConfiguration configuration)
+    public void SaveLastFolder()
     {
-        _optionsMonitor = optionsMonitor;
-        _configuration = configuration;
-        _configPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "config.ini");
-    }
+        if (_fileBrowserService.CurrentParent == null)
+        {
+            return;
+        }
 
-    public string GetLastFolder()
-    {
-        var config = _optionsMonitor.CurrentValue;
-        var lastFolder = config.App.LastFolder;
-        return !string.IsNullOrEmpty(lastFolder) && Directory.Exists(lastFolder) 
-            ? lastFolder 
-            : Environment.CurrentDirectory;
-    }
+        string[] lastFolderConfigParts = ConfigKeys.AppLastFolderPath.Split(':');
+        if (lastFolderConfigParts.Length != 2)
+        {
+            throw new InvalidOperationException();
+        }
 
-    public void SaveLastFolder(string folderPath)
-    {
-        UpdateIniFile("App", "LastFolder", folderPath);
+        UpdateIniFile(lastFolderConfigParts[0], lastFolderConfigParts[1], _fileBrowserService.CurrentParent.FullName);
     }
 
     private void UpdateIniFile(string section, string key, string value)
@@ -48,7 +40,7 @@ public class ConfigurationService : IConfigurationService
         // Process existing lines
         for (int i = 0; i < lines.Count; i++)
         {
-            var line = lines[i].Trim();
+            string line = lines[i].Trim();
             
             // Check if this is a section header
             if (line.StartsWith('[') && line.EndsWith(']'))
@@ -81,7 +73,7 @@ public class ConfigurationService : IConfigurationService
         {
             for (int i = 0; i < lines.Count; i++)
             {
-                var line = lines[i].Trim();
+                string line = lines[i].Trim();
                 if (line.Equals($"[{section}]", StringComparison.OrdinalIgnoreCase))
                 {
                     // Find the end of this section (next section or end of file)

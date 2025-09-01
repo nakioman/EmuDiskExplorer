@@ -4,9 +4,11 @@ namespace EmuDiskExplorer.Services;
 
 public interface IFileBrowserService
 {
-    string CurrentPath { get; }
-    List<string> GetDirectoryEntries();
-    bool NavigateToPath(string path);
+    event EventHandler<FileBrowserEntriesChangedEventArgs>? EntriesChanged;
+    event EventHandler<FileBrowserFileExecutedEventArgs>? FileExecuted;
+
+    ICollection<FileSystemInfo> GetEntries();
+    bool ExecuteEntry(FileSystemInfo entry);
     bool NavigateUp();
-    void ExecuteFile(string filePath);
+    DirectoryInfo CurrentParent { get; }
 }

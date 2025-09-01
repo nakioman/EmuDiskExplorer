@@ -12,17 +12,18 @@ public class FileBrowserUI
     public FileBrowserUI(IFileBrowserService fileBrowserService)
     {
         _fileBrowserService = fileBrowserService;
+        _fileBrowserService.EntriesChanged += RefreshFileList;
+        _fileBrowserService.FileExecuted += FileExecuted;
     }
 
     public void Run()
     {
         Application.Init();
-        var top = Application.Top;
+        Toplevel top = Application.Top;
 
         CreateMainWindow(top);
         CreateStatusBar(top);
 
-        RefreshFileList();
         SetupEventHandlers();
 
         Application.Run();
@@ -40,7 +41,7 @@ public class FileBrowserUI
         };
         top.Add(win);
 
-        _pathLabel = new Label(_fileBrowserService.CurrentPath)
+        _pathLabel = new Label(_fileBrowserService.CurrentParent.FullName)
         {
             X = 1,
             Y = 0,
@@ -48,7 +49,9 @@ public class FileBrowserUI
         };
         win.Add(_pathLabel);
 
-        _listView = new ListView()
+        ICollection<FileSystemInfo> entries = _fileBrowserService.GetEntries();
+        ListDataSource dataSource = new(entries);
+        _listView = new ListView(dataSource)
         {
             X = 1,
             Y = 2,
@@ -58,13 +61,13 @@ public class FileBrowserUI
         win.Add(_listView);
     }
 
-    private void CreateStatusBar(Toplevel top)
+    private static void CreateStatusBar(Toplevel top)
     {
-        var statusBar = new StatusBar(new StatusItem[] {
-            new StatusItem(Key.Enter, "~ENTER~ Open/Navigate", null),
-            new StatusItem(Key.Backspace, "~BACKSPACE~ Go Up", null),
-            new StatusItem(Key.F10, "~F10~ Quit", () => Application.RequestStop())
-        });
+        var statusBar = new StatusBar([
+            new(Key.Enter, "~ENTER~ Open/Navigate", null),
+            new(Key.Backspace, "~BACKSPACE~ Go Up", null),
+            new(Key.F10, "~F10~ Quit", () => Application.RequestStop())
+        ]);
         top.Add(statusBar);
     }
 
@@ -72,79 +75,37 @@ public class FileBrowserUI
     {
         if (_listView == null) return;
 
-        _listView.KeyPress += (args) => {
-            if (args.KeyEvent.Key == Key.Enter)
+        _listView.KeyPress += (args) =>
+        {
+            if (args.KeyEvent.Key == Key.Backspace)
             {
-                HandleEnterKey();
-                args.Handled = true;
-            }
-            else if (args.KeyEvent.Key == Key.Backspace)
-            {
-                NavigateUp();
+                _fileBrowserService.NavigateUp();
                 args.Handled = true;
             }
         };
 
-        _listView.OpenSelectedItem += (args) => {
-            HandleEnterKey();
+        _listView.OpenSelectedItem += (args) =>
+        {
+            if (args.Value is FileSystemInfo selectedEntry)
+            {
+                _fileBrowserService.ExecuteEntry(selectedEntry);
+            }
         };
     }
 
-    private void RefreshFileList()
+    private void RefreshFileList(object? sender, FileBrowserEntriesChangedEventArgs e)
     {
-        try
-        {
-            var entries = _fileBrowserService.GetDirectoryEntries();
-            _listView?.SetSource(entries.ToArray());
-            if (_pathLabel != null)
-            {
-                _pathLabel.Text = _fileBrowserService.CurrentPath;
-            }
-        }
-        catch (Exception ex)
-        {
-            MessageBox.ErrorQuery("Error", $"Cannot access directory: {ex.Message}", "Ok");
-        }
+        if (_listView == null || _pathLabel == null) return;
+
+        _listView.Source = new ListDataSource(e.Entries);
+        _listView.SetNeedsDisplay();
+
+        _pathLabel.Text = e.CurrentParent.FullName;
+        _pathLabel.SetNeedsDisplay();
     }
 
-    private void HandleEnterKey()
+    public void FileExecuted(object? sender, FileBrowserFileExecutedEventArgs e)
     {
-        if (_listView?.Source?.Count == 0) return;
-        
-        var selectedIndex = _listView?.SelectedItem ?? 0;
-        var source = _listView?.Source?.ToList();
-        if (source == null || selectedIndex >= source.Count) return;
-        
-        var selectedItem = source[selectedIndex]?.ToString();
-        if (string.IsNullOrEmpty(selectedItem)) return;
-
-        if (selectedItem == "..")
-        {
-            NavigateUp();
-            return;
-        }
-
-        var itemName = selectedItem.Substring(2).Trim();
-        var fullPath = Path.Combine(_fileBrowserService.CurrentPath, itemName);
-
-        if (Directory.Exists(fullPath))
-        {
-            if (_fileBrowserService.NavigateToPath(fullPath))
-            {
-                RefreshFileList();
-            }
-        }
-        else if (File.Exists(fullPath))
-        {
-            _fileBrowserService.ExecuteFile(fullPath);
-        }
-    }
-
-    private void NavigateUp()
-    {
-        if (_fileBrowserService.NavigateUp())
-        {
-            RefreshFileList();
-        }
+        Application.RequestStop();
     }
 }

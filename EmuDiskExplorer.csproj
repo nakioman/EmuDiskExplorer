@@ -24,6 +24,16 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="config.ini" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="config.ini">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Terminal.Gui" Version="1.16.0" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.0" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.0" />

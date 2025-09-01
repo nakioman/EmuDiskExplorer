@@ -3,7 +3,6 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Configuration;
 using EmuDiskExplorer.Services;
 using EmuDiskExplorer.UI;
-using EmuDiskExplorer.Models;
 
 namespace EmuDiskExplorer;
 
@@ -11,10 +10,21 @@ class Program
 {
     static void Main(string[] args)
     {
-        var host = CreateHostBuilder(args).Build();
+        IHost host = CreateHostBuilder(args).Build();
+
+        // Register shutdown handler
+        IHostApplicationLifetime lifetime = host.Services.GetRequiredService<IHostApplicationLifetime>();
         
-        var fileBrowserUI = host.Services.GetRequiredService<FileBrowserUI>();
+        lifetime.ApplicationStopping.Register(() =>
+        {
+            IConfigurationService configService = host.Services.GetRequiredService<IConfigurationService>();
+            configService.SaveLastFolder();
+        });
+
+        FileBrowserUI fileBrowserUI = host.Services.GetRequiredService<FileBrowserUI>();
         fileBrowserUI.Run();
+        
+        host.StopAsync().Wait();
     }
 
     static IHostBuilder CreateHostBuilder(string[] args) =>
@@ -30,9 +40,6 @@ class Program
             })
             .ConfigureServices((context, services) =>
             {
-                // Configure strongly typed configuration
-                services.Configure<AppConfiguration>(context.Configuration);
-                
                 // Register services
                 services.AddSingleton<IConfigurationService, ConfigurationService>();
                 services.AddSingleton<IFileBrowserService, FileBrowserService>();
