@@ -1,19 +1,13 @@
-using System.Diagnostics;
-using Microsoft.Extensions.Options;
-using EmuDiskExplorer.Models;
-
-namespace EmuDiskExplorer.Services;
+﻿namespace EmuDiskExplorer.Services;
 
 public class FileBrowserService : IFileBrowserService
 {
     private readonly IConfigurationService _configurationService;
-    private readonly IOptionsMonitor<AppConfiguration> _optionsMonitor;
     private string _currentPath;
 
-    public FileBrowserService(IConfigurationService configurationService, IOptionsMonitor<AppConfiguration> optionsMonitor)
+    public FileBrowserService(IConfigurationService configurationService)
     {
         _configurationService = configurationService;
-        _optionsMonitor = optionsMonitor;
         _currentPath = _configurationService.GetLastFolder();
     }
 
@@ -34,14 +28,14 @@ public class FileBrowserService : IFileBrowserService
             // Add directories
             var directories = Directory.GetDirectories(_currentPath)
                 .Where(d => (new DirectoryInfo(d).Attributes & FileAttributes.Hidden) == 0)
-                .Select(d => $"?? {Path.GetFileName(d)}")
+                .Select(d => $"📁 {Path.GetFileName(d)}")
                 .OrderBy(d => d);
             entries.AddRange(directories);
 
             // Add files
             var files = Directory.GetFiles(_currentPath)
                 .Where(f => (new FileInfo(f).Attributes & FileAttributes.Hidden) == 0)
-                .Select(f => $"?? {Path.GetFileName(f)}")
+                .Select(f => $"📄 {Path.GetFileName(f)}")
                 .OrderBy(f => f);
             entries.AddRange(files);
 

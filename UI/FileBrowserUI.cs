@@ -19,7 +19,6 @@ public class FileBrowserUI
         Application.Init();
         var top = Application.Top;
 
-        CreateMenuBar(top);
         CreateMainWindow(top);
         CreateStatusBar(top);
 
@@ -28,19 +27,6 @@ public class FileBrowserUI
 
         Application.Run();
         Application.Shutdown();
-    }
-
-    private void CreateMenuBar(Toplevel top)
-    {
-        var menu = new MenuBar(new MenuBarItem[] {
-            new MenuBarItem("_File", new MenuItem[] {
-                new MenuItem("_Quit", "", () => Application.RequestStop())
-            }),
-            new MenuBarItem("_Help", new MenuItem[] {
-                new MenuItem("_About", "", () => MessageBox.Query("About", "EmuDiskExplorer v1.0\nFile browser using Terminal.Gui", "Ok"))
-            })
-        });
-        top.Add(menu);
     }
 
     private void CreateMainWindow(Toplevel top)
