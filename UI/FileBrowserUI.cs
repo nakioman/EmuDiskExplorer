@@ -43,6 +43,7 @@ public class FileBrowserUI
                 new MenuItem("_About", "", () => MessageBox.Query("About", "EmuDiskExplorer v1.0\nFile browser using Terminal.Gui", "Ok"))
             ])
         ]);
+        menu.Key = Key.F1;
         top.Add(menu);
     }
 
