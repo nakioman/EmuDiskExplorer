@@ -33,10 +33,11 @@ public class FileBrowserUI
         Application.Shutdown();
     }
 
-    private static void CreateMenuBar(Toplevel top)
+    private void CreateMenuBar(Toplevel top)
     {
         var menu = new MenuBar([
             new MenuBarItem("_File", [
+                new MenuItem("_Eject Floppy", "Eject a floppy from the drive if any", async () => await _emulatorApi.EjectFloppyDrive()),
                 new MenuItem("_Quit", "", () => Application.RequestStop())
             ]),
             new MenuBarItem("_Help", [
