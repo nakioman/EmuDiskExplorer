@@ -6,12 +6,14 @@ namespace EmuDiskExplorer.UI;
 public class FileBrowserUI
 {
     private readonly IFileBrowserService _fileBrowserService;
+    private readonly IEmulatorApiService _emulatorApi;
     private ListView? _listView;
     private Label? _pathLabel;
 
-    public FileBrowserUI(IFileBrowserService fileBrowserService)
+    public FileBrowserUI(IFileBrowserService fileBrowserService, IEmulatorApiService emulatorApi)
     {
         _fileBrowserService = fileBrowserService;
+        _emulatorApi = emulatorApi;
         _fileBrowserService.EntriesChanged += RefreshFileList;
         _fileBrowserService.FileExecuted += FileExecuted;
     }
@@ -21,6 +23,7 @@ public class FileBrowserUI
         Application.Init();
         Toplevel top = Application.Top;
 
+        CreateMenuBar(top);
         CreateMainWindow(top);
         CreateStatusBar(top);
 
@@ -28,6 +31,19 @@ public class FileBrowserUI
 
         Application.Run();
         Application.Shutdown();
+    }
+
+    private static void CreateMenuBar(Toplevel top)
+    {
+        var menu = new MenuBar([
+            new MenuBarItem("_File", [
+                new MenuItem("_Quit", "", () => Application.RequestStop())
+            ]),
+            new MenuBarItem("_Help", [
+                new MenuItem("_About", "", () => MessageBox.Query("About", "EmuDiskExplorer v1.0\nFile browser using Terminal.Gui", "Ok"))
+            ])
+        ]);
+        top.Add(menu);
     }
 
     private void CreateMainWindow(Toplevel top)
@@ -106,6 +122,7 @@ public class FileBrowserUI
 
     public void FileExecuted(object? sender, FileBrowserFileExecutedEventArgs e)
     {
+        _emulatorApi.LoadFloppyDrive(e.ExecutedFile.FullName);
         Application.RequestStop();
     }
 }

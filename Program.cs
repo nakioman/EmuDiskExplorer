@@ -14,7 +14,7 @@ class Program
 
         // Register shutdown handler
         IHostApplicationLifetime lifetime = host.Services.GetRequiredService<IHostApplicationLifetime>();
-        
+
         lifetime.ApplicationStopping.Register(() =>
         {
             IConfigurationService configService = host.Services.GetRequiredService<IConfigurationService>();
@@ -23,7 +23,7 @@ class Program
 
         FileBrowserUI fileBrowserUI = host.Services.GetRequiredService<FileBrowserUI>();
         fileBrowserUI.Run();
-        
+
         host.StopAsync().Wait();
     }
 
@@ -33,7 +33,7 @@ class Program
             {
                 // Clear default configuration sources if needed
                 config.Sources.Clear();
-                
+
                 // Add our INI configuration
                 config.SetBasePath(AppDomain.CurrentDomain.BaseDirectory)
                       .AddIniFile("config.ini", optional: true, reloadOnChange: true);
@@ -44,6 +44,14 @@ class Program
                 services.AddSingleton<IConfigurationService, ConfigurationService>();
                 services.AddSingleton<IFileBrowserService, FileBrowserService>();
                 
+                services.AddHttpClient<IEmulatorApiService, EmulatorApiService>((serviceProvider, client) =>
+                {
+                    IConfiguration configuration = serviceProvider.GetRequiredService<IConfiguration>();
+                    string baseAddress = configuration[ConfigKeys.EmulatorBaseUrl] ?? "http://localhost:8090/";
+
+                    client.BaseAddress = new Uri(baseAddress);
+                });
+
                 // Register UI
                 services.AddTransient<FileBrowserUI>();
             });
