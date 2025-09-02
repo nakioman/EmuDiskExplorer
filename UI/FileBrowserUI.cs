@@ -120,7 +120,7 @@ public class FileBrowserUI
         _pathLabel.SetNeedsDisplay();
     }
 
-    public async Task FileExecuted(object? sender, FileBrowserFileExecutedEventArgs e)
+    public async void FileExecuted(object? sender, FileBrowserFileExecutedEventArgs e)
     {
         await _emulatorApi.LoadFloppyDrive(e.ExecutedFile.FullName);
         Application.RequestStop();
