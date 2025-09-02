@@ -120,9 +120,16 @@ public class FileBrowserUI
         _pathLabel.SetNeedsDisplay();
     }
 
-    public void FileExecuted(object? sender, FileBrowserFileExecutedEventArgs e)
+    public async void FileExecuted(object? sender, FileBrowserFileExecutedEventArgs e)
     {
-        _emulatorApi.LoadFloppyDrive(e.ExecutedFile.FullName).Wait();
-        Application.RequestStop();
+        try
+        {
+            await _emulatorApi.LoadFloppyDrive(e.ExecutedFile.FullName);
+            Application.RequestStop();
+        }
+        catch (Exception ex)
+        {
+            MessageBox.ErrorQuery("Error", $"Failed to load disk image:\n{ex.Message}", "Ok");
+        }
     }
 }

@@ -1,8 +1,9 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Configuration;
-using EmuDiskExplorer.Services;
+﻿using EmuDiskExplorer.Services;
 using EmuDiskExplorer.UI;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 
 namespace EmuDiskExplorer;
 
@@ -43,7 +44,12 @@ class Program
                 // Register services
                 services.AddSingleton<IConfigurationService, ConfigurationService>();
                 services.AddSingleton<IFileBrowserService, FileBrowserService>();
-                
+
+                services.AddLogging(builder =>
+                {
+                    builder.AddFilter("System.Net.Http.HttpClient", LogLevel.None);
+                });
+
                 services.AddHttpClient<IEmulatorApiService, EmulatorApiService>((serviceProvider, client) =>
                 {
                     IConfiguration configuration = serviceProvider.GetRequiredService<IConfiguration>();
