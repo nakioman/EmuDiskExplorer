@@ -120,9 +120,9 @@ public class FileBrowserUI
         _pathLabel.SetNeedsDisplay();
     }
 
-    public async void FileExecuted(object? sender, FileBrowserFileExecutedEventArgs e)
+    public void FileExecuted(object? sender, FileBrowserFileExecutedEventArgs e)
     {
-        await _emulatorApi.LoadFloppyDrive(e.ExecutedFile.FullName);
+        _emulatorApi.LoadFloppyDrive(e.ExecutedFile.FullName).Wait();
         Application.RequestStop();
     }
 }
