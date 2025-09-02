@@ -36,13 +36,10 @@ public class FileBrowserUI
     private void CreateMenuBar(Toplevel top)
     {
         var menu = new MenuBar([
-            new MenuBarItem("_File", [
-                new MenuItem("_Eject Floppy", "Eject a floppy from the drive if any", async () => await _emulatorApi.EjectFloppyDrive()),
-                new MenuItem("_Quit", "", () => Application.RequestStop())
+            new MenuBarItem("_Archivo", [
+                new MenuItem("_Extraer floppy", "", async () => await _emulatorApi.EjectFloppyDrive()),
+                new MenuItem("_Salir", "", () => Application.RequestStop())
             ]),
-            new MenuBarItem("_Help", [
-                new MenuItem("_About", "", () => MessageBox.Query("About", "EmuDiskExplorer v1.0\nFile browser using Terminal.Gui", "Ok"))
-            ])
         ]);
         menu.Key = Key.F1;
         top.Add(menu);
@@ -50,7 +47,7 @@ public class FileBrowserUI
 
     private void CreateMainWindow(Toplevel top)
     {
-        var win = new Window("File Browser")
+        var win = new Window("Explorador de imágenes de disco")
         {
             X = 0,
             Y = 1,
@@ -82,9 +79,9 @@ public class FileBrowserUI
     private static void CreateStatusBar(Toplevel top)
     {
         var statusBar = new StatusBar([
-            new(Key.Enter, "~ENTER~ Open/Navigate", null),
-            new(Key.Backspace, "~BACKSPACE~ Go Up", null),
-            new(Key.F10, "~F10~ Quit", () => Application.RequestStop())
+            new(Key.Enter, "~ENTER~ Elegir/Navegar", null),
+            new(Key.Backspace, "~BACKSPACE~ Subir", null),
+            new(Key.F10, "~F10~ Salir", () => Application.RequestStop())
         ]);
         top.Add(statusBar);
     }
@@ -131,7 +128,7 @@ public class FileBrowserUI
         }
         catch (Exception ex)
         {
-            MessageBox.ErrorQuery("Error", $"Failed to load disk image:\n{ex.Message}", "Ok");
+            MessageBox.ErrorQuery("Error", $"Fallo la carga de la imágen de disco:\n{ex.Message}", "Ok");
         }
     }
 }
