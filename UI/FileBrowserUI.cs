@@ -1,5 +1,6 @@
 using Terminal.Gui;
 using EmuDiskExplorer.Services;
+using Microsoft.Extensions.Configuration;
 
 namespace EmuDiskExplorer.UI;
 
@@ -9,13 +10,15 @@ public class FileBrowserUI
     private readonly IEmulatorApiService _emulatorApi;
     private ListView? _listView;
     private Label? _pathLabel;
+    private readonly string _comPort;
 
-    public FileBrowserUI(IFileBrowserService fileBrowserService, IEmulatorApiService emulatorApi)
+    public FileBrowserUI(IFileBrowserService fileBrowserService, IEmulatorApiService emulatorApi, IConfiguration configuration)
     {
         _fileBrowserService = fileBrowserService;
         _emulatorApi = emulatorApi;
         _fileBrowserService.EntriesChanged += RefreshFileList;
         _fileBrowserService.FileExecuted += FileExecuted;
+        _comPort = configuration["EmulatorComPort"] ?? "/dev/ttyUSB0";
     }
 
     public void Run()
@@ -36,10 +39,13 @@ public class FileBrowserUI
     private void CreateMenuBar(Toplevel top)
     {
         var menu = new MenuBar([
-            new MenuBarItem("_Archivo", [
-                new MenuItem("_Extraer floppy", "", async () => await _emulatorApi.EjectFloppyDrive()),
+            new MenuBarItem("_Archivo", [                
                 new MenuItem("_Salir", "", () => Application.RequestStop())
             ]),
+            new MenuBarItem("_Floppy", [
+                new MenuItem("_Extraer floppy", "", async () => await _emulatorApi.EjectFloppyDrive()),
+                new MenuItem("_Refrescar Drawbridge", "", async () => await _emulatorApi.LoadFloppyDrive(_comPort)),
+             ])
         ]);
         menu.Key = Key.F1;
         top.Add(menu);
